@@ -1,0 +1,11 @@
+{
+  "name": "popcat",
+  "version": "1.0.0",
+  "main": "popcat.js",
+  "license": "MIT",
+  "dependencies": {
+    "@opentelemetry/api": "^1.0.2",
+    "@opentelemetry/exporter-prometheus": "^0.24.0",
+    "node-fetch": "^2.6.1"
+  }
+}
