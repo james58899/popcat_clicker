@@ -36,33 +36,26 @@ for await (const ip of ips) {
         family: "6"
     });
     let token = ""
-    let cookie = new Map()
     let ready = false
 
     setImmediate(async () => {
         while (true) {
             try {
                 const random = 500 + Math.round(300 * Math.random())
-                const url = `https://stats.popcat.click/pop?pop_count=${random}&captcha_token=a`
+                const captcha = await fetch('https://recaptcha.net/recaptcha/api2/anchor?ar=1&k=6Ledv1IaAAAAAKFJSR7VKPE8e-4kht4ZmLzencES&co=aHR0cHM6Ly9wb3BjYXQuY2xpY2s6NDQz&hl=zh-TW&v=JF4U2g-hvLrBJ_UxdbKj92gN&size=invisible', { agent: httpsAgent })
+                    .then(res => res.text())
+                    .then(text => text.match(/<input type="hidden" id="recaptcha-token" value="([^"]+)">/)[1])
+                const url = `https://stats.popcat.click/pop?pop_count=${random}&captcha_token=${captcha}`
                 const res = await fetch(token === "" ? url : `${url}&token=${token}`, {
                     headers: {
                         "Host": "stats.popcat.click",
-                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0",
-                        "Cookie": Array.from(cookie).map(([key, value]) => `${key}=${value}`).join('; ')
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0"
                     },
                     method: 'POST',
                     agent: httpsAgent
                 })
-                const newCookie = res.headers.raw()['set-cookie']
-                if (newCookie) {
-                    console.log(newCookie)
-                    for (i of newCookie) {
-                        const j = i.split("=")
-                        cookie.set(j[0], j[1])
-                    }
-                }
                 if (res.ok) {
-                    const newToken = (await res.json()).token
+                    const newToken = (await res.json()).Token
                     if (newToken) token = newToken
                     if (!ready) {
                         ready = true
@@ -76,7 +69,7 @@ for await (const ip of ips) {
                     // console.log(ip.split(":").slice(-1)[0] + " 的台灣價值 +1")
                 } else {
                     requestCounter.add(1, { status: "fail", code: res.status.toString() })
-                    console.log(await res.text())
+                    if (res.status !== 503) console.log(await res.text())
                 }
             } catch (error) {
                 requestCounter.add(1, { status: "fail", code: "0" })
@@ -94,6 +87,6 @@ for await (const ip of ips) {
                 clearInterval(timer)
                 resolve()
             }
-        }, 1000)
+        }, 100)
     });
 }
